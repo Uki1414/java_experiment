@@ -41,7 +41,7 @@ public class SelectButton extends JButton implements State {
 
         boolean onShape = false;
         for (MyDrawing d : stateManager.getSelectedDrawings()) {
-            if (d.contains(x, y)) {
+            if (d.getSelected() && d.contains(x, y)) {
                 onShape = true;
                 break;
             }
