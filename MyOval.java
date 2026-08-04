@@ -1,5 +1,6 @@
-
 import java.awt.*;
+import java.io.*;
+import java.awt.geom.Ellipse2D;
 
 public class MyOval extends MyDrawing {
 
@@ -47,5 +48,21 @@ public class MyOval extends MyDrawing {
         g2.fillOval(x, y, w, h);
         g2.setColor(getLineColor());
         g2.drawOval(x, y, w, h);
+
+        super.draw(g);
+    }
+
+    public boolean contains(int x, int y) {
+        if(region == null) return false;
+        return super.contains(x, y) || region.contains(x, y);
+    }
+
+    public void setRegion() {
+        region = new Ellipse2D.Double(getX(), getY(), getW(), getH());
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        setRegion();
     }
 }

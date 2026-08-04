@@ -1,13 +1,16 @@
-
 import java.awt.*;
+import java.io.*;
 
-public class MyDrawing {
+public class MyDrawing implements Cloneable, Serializable{
 
     private int x, y, w, h; // X座標, Y座標, 幅, 高さ
     private Color lineColor, fillColor; // 線の色,　塗り色
     private int lineWidth; // 線の太さ
     private boolean dashed; // 線種
     private boolean shadow; // 影
+    private boolean isSelected;
+    transient protected Shape region; //包含判定用
+    private final int SIZE = 7;
 
     public MyDrawing() {
         this(0, 0, 40, 40, Color.black, Color.white, 1);
@@ -31,25 +34,77 @@ public class MyDrawing {
         this.lineWidth = lineWidth;
         this.dashed = false;
         this.shadow = false;
+        this.isSelected = false;
+        setRegion();
     }
 
     public void draw(Graphics g) {
+        // 選択状態を表す四角形を描く
+        if(isSelected){
+            g.setColor(Color.black);
+            g.fillRect(x+w/2-SIZE/2, y-SIZE/2, SIZE, SIZE);
+            g.fillRect(x-SIZE/2, y+h/2-SIZE/2, SIZE, SIZE);
+            g.fillRect(x+w/2-SIZE/2, y+h-SIZE/2, SIZE, SIZE);
+            g.fillRect(x+w-SIZE/2, y+h/2-SIZE/2, SIZE, SIZE);
+            g.fillRect(x-SIZE/2, y-SIZE/2, SIZE, SIZE);
+            g.fillRect(x+w-SIZE/2, y-SIZE/2, SIZE, SIZE);
+            g.fillRect(x-SIZE/2, y+h-SIZE/2, SIZE, SIZE);
+            g.fillRect(x+w-SIZE/2, y+h-SIZE/2, SIZE, SIZE);
+        }
+    }
+
+    public boolean getSelected(){
+        return isSelected;
+    }
+
+    public void setSelected(boolean isSelected){
+        this.isSelected = isSelected;
+    }
+
+    public boolean contains(int x, int y) {
+        return getResizeMode(x, y) != -1;
+    }
+
+    public int getResizeMode(int px, int py) {
+        if (!isSelected) return -1;
+
+        int[] handleX = {x, x + w / 2, x + w, x + w, x + w, x + w / 2, x, x};
+        int[] handleY = {y, y, y, y + h / 2, y + h, y + h, y + h, y + h / 2};
+
+        for (int i = 0; i < handleX.length; i++) {
+            if (Math.abs(px - handleX[i]) <= SIZE / 2
+                    && Math.abs(py - handleY[i]) <= SIZE / 2) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public boolean intersects(java.awt.Rectangle rect) {
+        if (region == null) return false;
+        return region.intersects(rect);
+    }
+
+    public void setRegion() {
 
     }
 
     public void move(int dx, int dy) {
         x = x + dx;
         y = y + dy;
+        setRegion();
     }
 
     public void setLocation(int x, int y) {
         this.x = x;
         this.y = y;
+        setRegion();
     }
 
     public void setLocation(Point p) {
         this.x = p.x;
         this.y = p.y;
+        setRegion();
     }
 
     public Point getLocation() {
@@ -59,6 +114,15 @@ public class MyDrawing {
     public void setSize(int w, int h) {
         this.w = w;
         this.h = h;
+        setRegion();
+    }
+
+    public void resize(int x, int y, int w, int h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        setRegion();
     }
 
     public int getX() {
@@ -97,6 +161,10 @@ public class MyDrawing {
         return lineWidth;
     }
 
+    public void setLineWidth(int w) {
+        this.lineWidth = w;
+    }
+
     public boolean isDashed() {
         return dashed;
     }
@@ -111,5 +179,19 @@ public class MyDrawing {
 
     public boolean getShadow() {
         return shadow;
+    }
+
+    public MyDrawing clone(){
+        try{
+            return (MyDrawing)super.clone();
+        }catch(CloneNotSupportedException e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        setRegion();
     }
 }

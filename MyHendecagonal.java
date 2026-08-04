@@ -1,5 +1,5 @@
-
 import java.awt.*;
+import java.io.*;
 
 public class MyHendecagonal extends MyDrawing {
 
@@ -21,14 +21,8 @@ public class MyHendecagonal extends MyDrawing {
         int w = getW();
         int h = getH();
 
-        if (w < 0) {
-            x += w;
-            w *= -1;
-        }
-        if (h < 0) {
-            y += h;
-            h *= -1;
-        }
+        if (w < 0) { x += w; w *= -1; }
+        if (h < 0) { y += h; h *= -1; }
 
         Graphics2D g2 = (Graphics2D) g;
 
@@ -40,12 +34,10 @@ public class MyHendecagonal extends MyDrawing {
         double cy = y + h / 2.0;
         double rx = w / 2.0;
         double ry = h / 2.0;
-
         double startAngle = -Math.PI / 2;
 
         for (int i = 0; i < nPoints; i++) {
             double angle = startAngle + (2 * Math.PI * i / nPoints);
-
             xPoints[i] = (int) Math.round(cx + rx * Math.cos(angle));
             yPoints[i] = (int) Math.round(cy + ry * Math.sin(angle));
         }
@@ -69,5 +61,45 @@ public class MyHendecagonal extends MyDrawing {
         g2.fillPolygon(polygon);
         g2.setColor(getLineColor());
         g2.drawPolygon(polygon);
+        
+        super.draw(g);
+    }
+
+    public boolean contains(int x, int y) {
+        if(region == null) return false;
+        return super.contains(x, y) || region.contains(x, y);
+    }
+
+    public void setRegion() {
+        int nPoints = 11;
+        int[] xPoints = new int[nPoints];
+        int[] yPoints = new int[nPoints];
+
+        int rx = getX();
+        int ry = getY();
+        int rw = getW();
+        int rh = getH();
+        
+        if (rw < 0) { rx += rw; rw *= -1; }
+        if (rh < 0) { ry += rh; rh *= -1; }
+
+        double cx = rx + rw / 2.0;
+        double cy = ry + rh / 2.0;
+        double radX = rw / 2.0;
+        double radY = rh / 2.0;
+        double startAngle = -Math.PI / 2;
+
+        for (int i = 0; i < nPoints; i++) {
+            double angle = startAngle + (2 * Math.PI * i / nPoints);
+            xPoints[i] = (int) Math.round(cx + radX * Math.cos(angle));
+            yPoints[i] = (int) Math.round(cy + radY * Math.sin(angle));
+        }
+
+        region = new Polygon(xPoints, yPoints, nPoints);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        setRegion();
     }
 }

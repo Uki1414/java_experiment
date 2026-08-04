@@ -1,5 +1,6 @@
-
 import java.awt.*;
+import java.io.*;
+import java.awt.geom.*;
 
 public class MyRoundRect extends MyDrawing {
 
@@ -30,8 +31,6 @@ public class MyRoundRect extends MyDrawing {
             h *= -1;
         }
 
-        // 丸みの割合を大きくする（例として5で割る）ことで、
-        // ドラッグによるサイズ変化に合わせて丸みの変化がはっきりと見えるようになります
         int arc = Math.min(w, h) / 5;
 
         Graphics2D g2 = (Graphics2D) g;
@@ -51,5 +50,21 @@ public class MyRoundRect extends MyDrawing {
         g2.fillRoundRect(x, y, w, h, arc, arc);
         g2.setColor(getLineColor());
         g2.drawRoundRect(x, y, w, h, arc, arc);
+
+        super.draw(g);
+    }
+
+    public boolean contains(int x, int y) {
+        if(region == null) return false;
+        return super.contains(x, y) || region.contains(x, y);
+    }
+
+    public void setRegion() {
+        region = new RoundRectangle2D.Double(getX(), getY(), getW(), getH(), getW() / 5, getH() / 5);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        setRegion();
     }
 }

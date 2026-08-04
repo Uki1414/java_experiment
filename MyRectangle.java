@@ -1,5 +1,6 @@
 
 import java.awt.*;
+import java.io.*;
 
 public class MyRectangle extends MyDrawing {
 
@@ -48,5 +49,21 @@ public class MyRectangle extends MyDrawing {
         g2.fillRect(x, y, w, h);
         g2.setColor(getLineColor());
         g2.drawRect(x, y, w, h);
+        
+        super.draw(g);
+    }
+
+    public boolean contains(int x, int y) {
+        if(region == null) return false;
+        return super.contains(x, y) || region.contains(x, y);
+    }
+
+    public void setRegion() {
+        region = new Rectangle(getX(), getY(), getW(), getH());
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        setRegion();
     }
 }
