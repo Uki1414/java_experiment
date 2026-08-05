@@ -7,14 +7,15 @@ public class MyCanvas extends JPanel{
 
   public MyCanvas(){
     mediator = new Mediator(this);
+    setLayout(null);
   }
 
   public Mediator getMediator(){
     return mediator;
   }
 
-  public void paint(Graphics g){
-    super.paint(g);
+  protected void paintComponent(Graphics g){
+    super.paintComponent(g);
 
     Enumeration<MyDrawing> e = mediator.drawingsElements();
     while(e.hasMoreElements()){

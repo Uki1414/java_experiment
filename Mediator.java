@@ -31,6 +31,19 @@ public class Mediator {
     return selectedDrawings;
   }
 
+  public MyTextBox getTextBoxAt(int x, int y){
+    for(int i = drawings.size() - 1; i >= 0; i--){
+      MyDrawing d = drawings.get(i);
+      if(d.contains(x, y)){
+        if(d instanceof MyTextBox){
+          return (MyTextBox)d;
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+
   public void repaint(){
     canvas.repaint();
   }
@@ -80,6 +93,30 @@ public class Mediator {
             d.move(dx, dy);
       }
     }
+  }
+
+  public void bringToFront(){
+    Vector<MyDrawing> targets = new Vector<MyDrawing>();
+    for(MyDrawing d : drawings){
+      if(selectedDrawings.contains(d)){
+        targets.add(d);
+      }
+    }
+    drawings.removeAll(targets);
+    drawings.addAll(targets);
+    repaint();
+  }
+
+  public void sendToBack(){
+    Vector<MyDrawing> targets = new Vector<MyDrawing>();
+    for(MyDrawing d : drawings){
+      if(selectedDrawings.contains(d)){
+        targets.add(d);
+      }
+    }
+    drawings.removeAll(targets);
+    drawings.addAll(0, targets);
+    repaint();
   }
 
   public void clearBuffer() {

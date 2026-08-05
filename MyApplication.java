@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Locale;
 import javax.swing.*;
 
 // ウインドウを表すクラス
@@ -66,8 +68,27 @@ public class MyApplication extends JFrame {
         HendecagonalButton hendecagonalButton = new HendecagonalButton(stateManager);
         jp.add(hendecagonalButton);
 
+        TextButton textButton = new TextButton(stateManager);
+        jp.add(textButton);
+
         SelectButton selectButton = new SelectButton(stateManager);
         jp.add(selectButton);
+
+        JButton frontButton = new JButton("To Front");
+        frontButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                stateManager.bringToFront();
+            }
+        });
+        jp.add(frontButton);
+
+        JButton backButton = new JButton("To Back");
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                stateManager.sendToBack();
+            }
+        });
+        jp.add(backButton);
 
         JCheckBox dashCheck = new JCheckBox("Dashed");
         dashCheck.addItemListener(new ItemListener() {
@@ -110,10 +131,76 @@ public class MyApplication extends JFrame {
         colorPanel.add(new JLabel("Width:"));
         colorPanel.add(widthCombo);
 
+        String[] fontNames = getFontNames();
+        JComboBox<String> fontCombo = new JComboBox<>(fontNames);
+        fontCombo.setMaximumRowCount(12);
+        fontCombo.setSelectedItem(Font.DIALOG);
+        fontCombo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                stateManager.setFontName((String)fontCombo.getSelectedItem());
+            }
+        });
+
+        String[] fontSizeOptions = {"8", "10", "12", "14", "18", "24", "32", "48", "64", "72"};
+        JComboBox<String> fontSizeCombo = new JComboBox<>(fontSizeOptions);
+        fontSizeCombo.setSelectedItem("12");
+        fontSizeCombo.setEditable(true);
+        fontSizeCombo.addActionListener(new ActionListener() {
+            private int lastValidSize = 12;
+
+            public void actionPerformed(ActionEvent e) {
+                Object value = fontSizeCombo.getEditor().getItem();
+                try {
+                    int size = Integer.parseInt(value.toString().trim());
+                    if (size < 1 || size > 300) {
+                        throw new NumberFormatException();
+                    }
+                    lastValidSize = size;
+                    stateManager.setFontSize(size);
+                    fontSizeCombo.getEditor().setItem(String.valueOf(size));
+                } catch (NumberFormatException ex) {
+                    Toolkit.getDefaultToolkit().beep();
+                    fontSizeCombo.getEditor().setItem(
+                            String.valueOf(lastValidSize));
+                }
+            }
+        });
+
+        JCheckBox boldCheck = new JCheckBox("Bold");
+        boldCheck.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                stateManager.setBold(e.getStateChange() == ItemEvent.SELECTED);
+            }
+        });
+
+        JCheckBox italicCheck = new JCheckBox("Italic");
+        italicCheck.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                stateManager.setItalic(e.getStateChange() == ItemEvent.SELECTED);
+            }
+        });
+
+        JCheckBox underlineCheck = new JCheckBox("Underline");
+        underlineCheck.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                stateManager.setUnderline(e.getStateChange() == ItemEvent.SELECTED);
+            }
+        });
+
+        JPanel fontPanel = new JPanel();
+        fontPanel.add(new JLabel("Font:"));
+        fontPanel.add(fontCombo);
+        fontPanel.add(new JLabel("Size:"));
+        fontPanel.add(fontSizeCombo);
+        fontPanel.add(boldCheck);
+        fontPanel.add(italicCheck);
+        fontPanel.add(underlineCheck);
+
         JPanel northPanel = new JPanel();
-        northPanel.setLayout(new GridLayout(2, 1)); 
+        northPanel.setLayout(new GridLayout(3, 1)); 
         northPanel.add(jp);
         northPanel.add(colorPanel);
+        northPanel.add(fontPanel);
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(northPanel, BorderLayout.NORTH);
@@ -169,6 +256,40 @@ public class MyApplication extends JFrame {
 
     public Dimension getPreferredSize() {
         return new Dimension(800, 600);
+    }
+
+    private String[] getFontNames() {
+        GraphicsEnvironment environment =
+                GraphicsEnvironment.getLocalGraphicsEnvironment();
+        LinkedHashSet<String> availableFonts = new LinkedHashSet<String>();
+        for (String name : environment.getAvailableFontFamilyNames(Locale.JAPAN)) {
+            availableFonts.add(name);
+        }
+        for (String name : environment.getAvailableFontFamilyNames()) {
+            availableFonts.add(name);
+        }
+
+        String[] preferredJapaneseFonts = {
+            "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+            "Hiragino Mincho ProN", "Hiragino Maru Gothic ProN",
+            "YuGothic", "Yu Gothic", "YuMincho", "Yu Mincho",
+            "YuKyokasho", "YuKyokasho Yoko", "Osaka",
+            "Noto Sans JP", "Noto Sans CJK JP",
+            "Noto Serif JP", "Noto Serif CJK JP",
+            "Meiryo", "MS Gothic", "MS Mincho"
+        };
+
+        LinkedHashSet<String> orderedFonts = new LinkedHashSet<String>();
+        for (String preferred : preferredJapaneseFonts) {
+            for (String available : availableFonts) {
+                if (preferred.equalsIgnoreCase(available)) {
+                    orderedFonts.add(available);
+                    break;
+                }
+            }
+        }
+        orderedFonts.addAll(availableFonts);
+        return orderedFonts.toArray(new String[orderedFonts.size()]);
     }
     
     public static void main(String[] args) {
