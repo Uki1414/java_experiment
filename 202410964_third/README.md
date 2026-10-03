@@ -1,2 +1,0 @@
-# java_experiment
-情報メディア実験ＡのJAVAによるGUIの記述用フォルダ
